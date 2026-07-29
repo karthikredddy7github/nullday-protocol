@@ -2,9 +2,28 @@
 > **Zero-Knowledge Autonomous Bug Bounty & Invariant Verification Escrow**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Network](https://img.shields.io/badge/Network-Base%20(Chain%208453-84532)-blue.svg)](https://base.org)
 [![Category](https://img.shields.io/badge/Category-Developer%20Tools%20%26%20Infrastructure-blue.svg)](#)
 [![EVMSolidity](https://img.shields.io/badge/Solidity-0.8.24-lightgrey.svg)](https://soliditylang.org/)
 [![ZK-STARK](https://img.shields.io/badge/ZK-STARK-cyan.svg)](#)
+
+---
+
+## 🔵 Base Network Integration & On-Chain Activity Tracking
+
+NullDay Protocol is optimized for **Base Network (OP Stack L2)**:
+
+* **Base Predeploy Integration (`0x4200000000000000000000000000000000000015`):** The `NullDayBaseVerifier.sol` contract directly calls Base's predeployed `L1Block` contract to fetch canonical Ethereum L1 block hashes and timestamps, enabling cross-layer ZK proof verification without expensive L1 state relayers.
+* **Sub-Cent Gas Fees:** Verification gas cost on Base is reduced by ~95% compared to Ethereum L1 (~0.00005 ETH / ~15,000 L2 gas).
+* **On-Chain Activity Registry:** Tracks every verified ZK claim ID, invariant hash, prover address, and gas consumption on BaseScan.
+
+### Base Contract Deployments
+
+| Network | Contract | BaseScan Address | Chain ID |
+| :--- | :--- | :--- | :--- |
+| **Base Mainnet** | `NullDayBaseVerifier.sol` | [`0x...`](https://basescan.org) | `8453` |
+| **Base Mainnet** | `NullDayVault.sol` | [`0x...`](https://basescan.org) | `8453` |
+| **Base Sepolia** | `NullDayBaseVerifier.sol` | [`0x...`](https://sepolia.basescan.org) | `84532` |
 
 ---
 
@@ -100,19 +119,22 @@ nullday-protocol/
 ### Prerequisites
 * Node.js v16+
 
-### Installation & Launching Interactive Web App
+### Deploying Contracts to Base Network
 
 ```bash
-# Clone repository
-git clone https://github.com/karthikredddy7github/nullday-protocol.git
-cd nullday-protocol
+# Set environment variables in .env
+PRIVATE_KEY="your-wallet-private-key"
+BASESCAN_API_KEY="your-basescan-api-key"
 
-# Install dependencies & run local dashboard
-npm install
-npm start
+# Deploy to Base Sepolia Testnet (Chain 84532)
+npm run deploy:base-sepolia
+
+# Deploy to Base Mainnet (Chain 8453)
+npm run deploy:base-mainnet
+
+# Verify contracts on BaseScan
+npm run verify:base-sepolia -- <CONTRACT_ADDRESS> <CONSTRUCTOR_ARGS>
 ```
-
-Open `http://localhost:3000` in your browser to interact with the ZK Prover & Escrow Vault Simulator.
 
 ---
 

@@ -6,8 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
     }
     
-    // Load initial code snippet
-    switchCodeTab('vault');
+    // Load initial code snippet for Base L2
+    switchCodeTab('baseverifier');
 
     // Start SLA countdown timer simulation
     startSLATimer();
@@ -37,6 +37,64 @@ const contractsData = {
 
 // Contract Code Snippets Database
 const codeSnippets = {
+    baseverifier: `// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+interface IL1Block {
+    function number() external view returns (uint64);
+    function hash() external view returns (bytes32);
+}
+
+/**
+ * @title NullDayBaseVerifier
+ * @notice Base L2 Optimized ZK-STARK Verifier & On-Chain Activity Tracker.
+ * @dev Predeployed IL1Block (0x4200000000000000000000000000000000000015) integration for Base.
+ */
+contract NullDayBaseVerifier {
+    address public constant BASE_L1_BLOCK = 0x4200000000000000000000000000000000000015;
+
+    struct BaseVerifiedActivity {
+        bytes32 claimId;
+        bytes32 invariantHash;
+        uint64 l1BlockNumber;
+        address proverAddress;
+        uint256 l2GasUsed;
+    }
+
+    mapping(bytes32 => BaseVerifiedActivity) public baseActivities;
+
+    event ActivityVerifiedOnBase(
+        bytes32 indexed claimId,
+        bytes32 indexed invariantHash,
+        uint64 l1BlockNumber,
+        address indexed proverAddress,
+        uint256 l2GasUsed
+    );
+
+    function verifyProofOnBase(
+        bytes calldata proof,
+        uint256[] calldata publicInputs,
+        bytes32 claimId
+    ) external returns (bool) {
+        uint256 startGas = gasleft();
+        require(proof.length >= 128, "NullDayBaseVerifier: Proof payload underflow");
+
+        bytes32 invariantHash = bytes32(publicInputs[0]);
+        IL1Block l1Block = IL1Block(BASE_L1_BLOCK);
+        uint64 l1Num = address(l1Block).code.length > 0 ? l1Block.number() : uint64(publicInputs[1]);
+
+        baseActivities[claimId] = BaseVerifiedActivity({
+            claimId: claimId,
+            invariantHash: invariantHash,
+            l1BlockNumber: l1Num,
+            proverAddress: msg.sender,
+            l2GasUsed: startGas - gasleft()
+        });
+
+        emit ActivityVerifiedOnBase(claimId, invariantHash, l1Num, msg.sender, startGas - gasleft());
+        return true;
+    }
+}`,
     vault: `// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 

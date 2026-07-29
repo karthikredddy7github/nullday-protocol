@@ -1,15 +1,23 @@
 {
   "name": "nullday-protocol",
-  "version": "1.0.0",
-  "description": "Zero-Knowledge Autonomous Bug Bounty & Invariant Verification Escrow Protocol",
+  "version": "1.1.0",
+  "description": "Zero-Knowledge Autonomous Bug Bounty & Invariant Verification Escrow Protocol on Base Network",
   "main": "index.html",
   "scripts": {
     "start": "serve -l 3000 .",
-    "dev": "serve -l 3000 ."
+    "dev": "serve -l 3000 .",
+    "compile": "hardhat compile",
+    "deploy:base-sepolia": "hardhat run scripts/deployBase.js --network base-sepolia",
+    "deploy:base-mainnet": "hardhat run scripts/deployBase.js --network base-mainnet",
+    "verify:base-sepolia": "hardhat verify --network base-sepolia",
+    "verify:base-mainnet": "hardhat verify --network base-mainnet"
   },
   "keywords": [
     "zero-knowledge",
     "zk-stark",
+    "base-network",
+    "base-sepolia",
+    "op-stack",
     "bug-bounty",
     "smart-contracts",
     "ethereum",
@@ -19,6 +27,12 @@
   "author": "karthikredddy7github",
   "license": "MIT",
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "dotenv": "^16.4.5",
+    "hardhat": "^2.22.5",
     "serve": "^14.2.4"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.2"
   }
 }
