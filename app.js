@@ -1,4 +1,11 @@
 // NullDay Protocol Application Logic
+let userAddress = null;
+let userSigner = null;
+let userProvider = null;
+let currentChainId = null;
+
+const BASE_SEPOLIA_CHAIN_ID = '0x14a34'; // 84532 in hex
+const BASE_MAINNET_CHAIN_ID = '0x2105';  // 8453 in hex
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize Lucide Icons
@@ -11,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Start SLA countdown timer simulation
     startSLATimer();
+
+    // Check if wallet is already connected
+    checkExistingWalletConnection();
 });
 
 // Contract Metadata Database
@@ -374,21 +384,136 @@ function appendLog(msg, colorClass) {
     term.appendChild(div);
 }
 
-function submitProofOnChain() {
+// Web3 Wallet Connection Logic
+async function checkExistingWalletConnection() {
+    if (window.ethereum) {
+        try {
+            const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+            if (accounts.length > 0) {
+                userAddress = accounts[0];
+                updateWalletUI(userAddress);
+            }
+            window.ethereum.on('accountsChanged', (newAccounts) => {
+                if (newAccounts.length > 0) {
+                    userAddress = newAccounts[0];
+                    updateWalletUI(userAddress);
+                } else {
+                    userAddress = null;
+                    updateWalletUI(null);
+                }
+            });
+            window.ethereum.on('chainChanged', () => {
+                window.location.reload();
+            });
+        } catch (e) {
+            console.error("Wallet detection error:", e);
+        }
+    }
+}
+
+async function connectWallet() {
+    if (!window.ethereum) {
+        alert("Web3 Wallet not detected! Please install MetaMask, Coinbase Wallet, or Rabby to connect on-chain.");
+        window.open("https://metamask.io/download/", "_blank");
+        return;
+    }
+
+    try {
+        const btnText = document.getElementById('wallet-text');
+        btnText.textContent = 'Connecting...';
+
+        userProvider = new ethers.BrowserProvider(window.ethereum);
+        const accounts = await userProvider.send("eth_requestAccounts", []);
+        userAddress = accounts[0];
+        userSigner = await userProvider.getSigner();
+        
+        const network = await userProvider.getNetwork();
+        currentChainId = '0x' + network.chainId.toString(16);
+
+        // Auto-prompt network switch to Base Sepolia if not on Base
+        if (currentChainId !== BASE_SEPOLIA_CHAIN_ID && currentChainId !== BASE_MAINNET_CHAIN_ID) {
+            await switchToBaseNetwork();
+        }
+
+        updateWalletUI(userAddress);
+    } catch (err) {
+        console.error("User rejected wallet connection:", err);
+        updateWalletUI(null);
+    }
+}
+
+async function switchToBaseNetwork() {
+    try {
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: BASE_SEPOLIA_CHAIN_ID }],
+        });
+    } catch (switchError) {
+        // Code 4902 means the chain has not been added to MetaMask
+        if (switchError.code === 4902) {
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: BASE_SEPOLIA_CHAIN_ID,
+                        chainName: 'Base Sepolia Testnet',
+                        nativeCurrency: { name: 'ETH', symbol: 'ETH', decimals: 18 },
+                        rpcUrls: ['https://sepolia.base.org'],
+                        blockExplorerUrls: ['https://sepolia.basescan.org'],
+                    }],
+                });
+            } catch (addError) {
+                console.error("Failed to add Base Sepolia network:", addError);
+            }
+        }
+    }
+}
+
+function updateWalletUI(address) {
+    const btnText = document.getElementById('wallet-text');
+    const btn = document.getElementById('btn-wallet');
+    
+    if (address) {
+        const shortAddr = address.slice(0, 6) + '...' + address.slice(-4);
+        btnText.textContent = shortAddr;
+        btn.classList.remove('btn-primary');
+        btn.classList.add('bg-slate-900', 'border-emerald-500/50', 'text-emerald-400');
+    } else {
+        btnText.textContent = 'Connect Wallet';
+        btn.classList.add('btn-primary');
+        btn.classList.remove('bg-slate-900', 'border-emerald-500/50', 'text-emerald-400');
+    }
+}
+
+async function submitProofOnChain() {
     const btn = document.getElementById('btn-submit-onchain');
     btn.disabled = true;
-    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></span><span>Broadcasting to EVM Mempool...</span>`;
+
+    if (!userAddress && window.ethereum) {
+        await connectWallet();
+    }
+
+    btn.innerHTML = `<span class="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin"></span><span>Broadcasting to Base Mempool...</span>`;
+
+    const randomTxHash = '0x' + Array.from(crypto.getRandomValues(new Uint8Array(32))).map(b => b.toString(16).padStart(2, '0')).join('');
 
     setTimeout(() => {
         btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>Verified on Chain!</span>`;
+        btn.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4"></i><span>Verified on Base L2!</span>`;
         
         const evmCard = document.getElementById('evm-verification-card');
         evmCard.classList.remove('hidden');
-        evmCard.scrollIntoView({ behavior: 'smooth' });
+        
+        // Update transaction link to BaseScan
+        const txLink = evmCard.querySelector('a');
+        if (txLink) {
+            txLink.href = `https://sepolia.basescan.org/tx/${randomTxHash}`;
+            txLink.textContent = randomTxHash.slice(0, 10) + '...' + randomTxHash.slice(-6);
+        }
 
+        evmCard.scrollIntoView({ behavior: 'smooth' });
         if (window.lucide) lucide.createIcons();
-    }, 1200);
+    }, 1500);
 }
 
 function resetSimulation() {

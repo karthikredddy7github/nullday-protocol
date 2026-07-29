@@ -12,6 +12,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Ethers.js v6 Library for Web3 Wallet Connection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.13.1/ethers.umd.min.js"></script>
     <!-- Custom Styles -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -65,19 +67,27 @@
                     </div>
                 </div>
 
-                <!-- Navigation Tabs -->
-                <div class="flex items-center gap-2">
-                    <button onclick="switchTab('simulator')" id="tab-simulator" class="nav-tab active-tab">
-                        <i data-lucide="cpu" class="w-4 h-4"></i>
-                        <span>Prover Console</span>
-                    </button>
-                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab">
-                        <i data-lucide="vault" class="w-4 h-4"></i>
-                        <span>Vaults & SLA</span>
-                    </button>
-                    <button onclick="switchTab('architecture')" id="tab-architecture" class="nav-tab">
-                        <i data-lucide="code-2" class="w-4 h-4"></i>
-                        <span>Architecture & Contracts</span>
+                <!-- Navigation Tabs & Web3 Connect Button -->
+                <div class="flex items-center gap-3">
+                    <div class="hidden sm:flex items-center gap-1">
+                        <button onclick="switchTab('simulator')" id="tab-simulator" class="nav-tab active-tab">
+                            <i data-lucide="cpu" class="w-4 h-4"></i>
+                            <span>Prover Console</span>
+                        </button>
+                        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab">
+                            <i data-lucide="vault" class="w-4 h-4"></i>
+                            <span>Vaults & SLA</span>
+                        </button>
+                        <button onclick="switchTab('architecture')" id="tab-architecture" class="nav-tab">
+                            <i data-lucide="code-2" class="w-4 h-4"></i>
+                            <span>Architecture</span>
+                        </button>
+                    </div>
+
+                    <!-- Web3 Wallet Connection Button -->
+                    <button onclick="connectWallet()" id="btn-wallet" class="btn-primary py-2 px-3 text-xs font-mono flex items-center gap-2 shadow-lg shadow-cyan-500/10 border border-cyan-400/30">
+                        <i data-lucide="wallet" class="w-4 h-4 text-cyan-300"></i>
+                        <span id="wallet-text">Connect Wallet</span>
                     </button>
                 </div>
             </div>
