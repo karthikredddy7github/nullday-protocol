@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NullDay Protocol | Zero-Knowledge Autonomous Bug Bounty & Invariant Verification Escrow</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-[#07090e] text-slate-100 font-['Plus_Jakarta_Sans',sans-serif] antialiased selection:bg-cyan-500/30 selection:text-cyan-200">
+    <!-- Glowing Background Effects -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-cyan-600/15 rounded-full blur-[120px]"></div>
+        <div class="absolute top-1/3 -right-40 w-[30rem] h-[30rem] bg-indigo-600/15 rounded-full blur-[140px]"></div>
+        <div class="absolute -bottom-40 left-1/3 w-[35rem] h-[35rem] bg-purple-600/10 rounded-full blur-[160px]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] opacity-20"></div>
+    </div>
+
+    <div class="relative z-10 flex flex-col min-h-screen">
+        <!-- Navigation Header -->
+        <header class="border-b border-slate-800/80 bg-[#0a0d14]/80 backdrop-blur-xl sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 p-[1px] shadow-lg shadow-cyan-500/20">
+                        <div class="w-full h-full bg-[#0b0f19] rounded-[11px] flex items-center justify-center">
+                            <i data-lucide="shield-alert" class="w-6 h-6 text-cyan-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">NullDay</span>
+                            <span class="px-2 py-0.5 text-[10px] font-semibold tracking-wider uppercase bg-cyan-950/80 border border-cyan-500/30 text-cyan-400 rounded-full">Protocol</span>
+                        </div>
+                        <p class="text-xs text-slate-400 font-mono">ZK-Proof of Invariant Violation Escrow</p>
+                    </div>
+                </div>
+
+                <!-- Global Live Metrics Bar -->
+                <div class="hidden md:flex items-center gap-6 px-4 py-2 bg-slate-900/60 border border-slate-800 rounded-full text-xs font-mono text-slate-300">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-slate-400">Escrow Vault TVL:</span>
+                        <span class="font-bold text-white">$14.25M USDC</span>
+                    </div>
+                    <div class="h-3 w-[1px] bg-slate-800"></div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-400 font-sans">Verified ZK Claims:</span>
+                        <span class="font-bold text-cyan-400">42</span>
+                    </div>
+                    <div class="h-3 w-[1px] bg-slate-800"></div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-slate-400 font-sans">Avg Verifier Gas:</span>
+                        <span class="font-bold text-purple-400">184,200</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs -->
+                <div class="flex items-center gap-2">
+                    <button onclick="switchTab('simulator')" id="tab-simulator" class="nav-tab active-tab">
+                        <i data-lucide="cpu" class="w-4 h-4"></i>
+                        <span>Prover Console</span>
+                    </button>
+                    <button onclick="switchTab('dashboard')" id="tab-dashboard" class="nav-tab">
+                        <i data-lucide="vault" class="w-4 h-4"></i>
+                        <span>Vaults & SLA</span>
+                    </button>
+                    <button onclick="switchTab('architecture')" id="tab-architecture" class="nav-tab">
+                        <i data-lucide="code-2" class="w-4 h-4"></i>
+                        <span>Architecture & Contracts</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            
+            <!-- SECTION 1: PROVER & VERIFIER SIMULATOR -->
+            <div id="view-simulator" class="tab-view space-y-8">
+                <!-- Banner Explaining Non-Existent Paradigm -->
+                <div class="relative overflow-hidden rounded-2xl border border-cyan-500/30 bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 p-6 shadow-2xl">
+                    <div class="absolute right-0 top-0 -mt-4 -mr-4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl"></div>
+                    <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                        <div class="space-y-2 max-w-3xl">
+                            <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-cyan-400">
+                                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                                <span>First-Ever Zero-Knowledge Vulnerability Escrow</span>
+                            </div>
+                            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                                Prove Smart Contract Vulnerabilities Without Disclosing the Exploit.
+                            </h1>
+                            <p class="text-slate-300 text-sm leading-relaxed">
+                                In traditional Web3 bug bounties, whitehats must trust protocol teams with unencrypted exploit code. <strong class="text-white">NullDay</strong> uses ZK-STARK execution traces: researchers submit an on-chain proof that contract state invariant $\mathcal{I}$ is broken, automatically locking the reward vault while keeping the attack payload zero-knowledge until patch deployment.
+                            </p>
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-3 shrink-0">
+                            <button onclick="loadSampleScenario('reentrancy')" class="btn-primary">
+                                <i data-lucide="play" class="w-4 h-4"></i>
+                                <span>Load Sample Exploit</span>
+                            </button>
+                            <button onclick="resetSimulation()" class="btn-secondary">
+                                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                                <span>Reset State</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3-Step Execution Workflow Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                    
+                    <!-- Left Column: Step 1 & 2 Configurator -->
+                    <div class="lg:col-span-5 space-y-6">
+                        <!-- Step 1: Target Contract & Invariant Selection -->
+                        <div class="card p-6 space-y-5">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-sm border border-cyan-500/40">1</span>
+                                    <h3 class="font-bold text-slate-100 text-lg">Target & Invariant Specification</h3>
+                                </div>
+                                <span class="text-xs text-slate-400 font-mono">EVM Target</span>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Target Protocol Contract</label>
+                                    <select id="target-contract-select" onchange="onContractChange()" class="input-field">
+                                        <option value="aave_v3_vault">Aether Vault (DeFi Lending Pool - $8.5M Escrow)</option>
+                                        <option value="cross_bridge">HyperHop Bridge (Cross-Chain Messenger - $4.2M Escrow)</option>
+                                        <option value="liquid_staking">StellarStake (Liquid Staking Protocol - $1.55M Escrow)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Select Invariant Violation to Prove</label>
+                                    <select id="invariant-select" class="input-field">
+                                        <option value="solvency">Invariant #1: Vault Collateral Under-collateralization (Balance < Total Debt)</option>
+                                        <option value="reentrancy">Invariant #2: State Reentrancy Double Withdrawal</option>
+                                        <option value="minting">Invariant #3: Unauthorized Token Supply Minting</option>
+                                    </select>
+                                </div>
+
+                                <div class="p-3 bg-slate-950/70 border border-slate-800 rounded-xl space-y-2">
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-400">Bounty Vault Address:</span>
+                                        <span id="vault-address" class="font-mono text-cyan-400">0x7F2...b9A1</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-400">Max Bounty Allocation:</span>
+                                        <span id="vault-bounty" class="font-semibold text-emerald-400">$850,000 USDC</span>
+                                    </div>
+                                    <div class="flex justify-between text-xs">
+                                        <span class="text-slate-400">SLA Patch Window:</span>
+                                        <span class="font-mono text-amber-400">72 Hours</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Exploit Trace & Circuit Input Configurator -->
+                        <div class="card p-6 space-y-5">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-sm border border-indigo-500/40">2</span>
+                                    <h3 class="font-bold text-slate-100 text-lg">Private Exploit Payload (ZK Input)</h3>
+                                </div>
+                                <span class="text-xs text-indigo-400 font-mono">Kept Off-Chain</span>
+                            </div>
+
+                            <p class="text-xs text-slate-400">
+                                Enter your exploit transaction parameters. These remain <span class="text-white font-medium">strictly local and confidential</span>. Only the STARK witness & execution trace proof are transmitted.
+                            </p>
+
+                            <div class="space-y-3 font-mono text-xs">
+                                <div>
+                                    <div class="flex justify-between text-slate-400 mb-1">
+                                        <span>Flash Loan Borrow (ETH):</span>
+                                        <span id="flashloan-val" class="text-cyan-400">500 ETH</span>
+                                    </div>
+                                    <input type="range" id="flashloan-range" min="50" max="2000" value="500" oninput="updateRangeVal('flashloan', this.value, ' ETH')" class="w-full accent-cyan-500 bg-slate-800">
+                                </div>
+
+                                <div>
+                                    <label class="block text-slate-400 mb-1">Exploit Calldata Payload (Private Witness)</label>
+                                    <textarea id="calldata-input" rows="3" class="input-field font-mono text-xs text-cyan-300" readonly>0x35935002000000000000000000000000a0b86991c6218b36c1d19d4a2e9eb0ce3606eb4800000000000000000000000000000000000000000000001b1ae4d6e2ef500000</textarea>
+                                </div>
+
+                                <div class="flex items-center justify-between p-3 bg-indigo-950/40 border border-indigo-500/30 rounded-xl">
+                                    <div class="flex items-center gap-2 text-indigo-300">
+                                        <i data-lucide="key" class="w-4 h-4"></i>
+                                        <span>Witness Commitment (Salted SHA-256):</span>
+                                    </div>
+                                    <span id="witness-hash" class="text-[11px] text-indigo-200 font-bold">0x9d4a...e12f</span>
+                                </div>
+                            </div>
+
+                            <button onclick="startZKCompilation()" id="btn-compile" class="w-full btn-gradient py-3 text-sm font-bold flex items-center justify-center gap-2">
+                                <i data-lucide="cpu" class="w-5 h-5"></i>
+                                <span>Synthesize ZK-STARK Execution Proof</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Right Column: Step 3 Prover Engine & On-Chain Verifier -->
+                    <div class="lg:col-span-7 space-y-6">
+                        
+                        <!-- Real-time Circuit Execution Console -->
+                        <div class="card p-6 space-y-5 border-cyan-500/20 shadow-cyan-950/20">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-sm border border-purple-500/40">3</span>
+                                    <h3 class="font-bold text-slate-100 text-lg">ZK Prover & STARK Circuit Engine</h3>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span id="prover-status-pill" class="badge badge-idle">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                        <span>Ready</span>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- Execution Pipeline Visualizer -->
+                            <div class="grid grid-cols-4 gap-2 text-center text-xs font-mono">
+                                <div id="pipe-1" class="pipe-step active">
+                                    <div class="text-[10px] text-slate-400">STEP 1</div>
+                                    <div class="font-bold">EVM Trace</div>
+                                </div>
+                                <div id="pipe-2" class="pipe-step">
+                                    <div class="text-[10px] text-slate-400">STEP 2</div>
+                                    <div class="font-bold">Polynomials</div>
+                                </div>
+                                <div id="pipe-3" class="pipe-step">
+                                    <div class="text-[10px] text-slate-400">STEP 3</div>
+                                    <div class="font-bold">FRI Oracle</div>
+                                </div>
+                                <div id="pipe-4" class="pipe-step">
+                                    <div class="text-[10px] text-slate-400">STEP 4</div>
+                                    <div class="font-bold">STARK Proof</div>
+                                </div>
+                            </div>
+
+                            <!-- Interactive Terminal Output -->
+                            <div class="bg-[#05070c] border border-slate-800 rounded-xl p-4 font-mono text-xs space-y-2 h-52 overflow-y-auto relative" id="terminal-logs">
+                                <div class="text-slate-500">// NullDay Prover Engine v2.4 - STARK Proof Generator</div>
+                                <div class="text-slate-400">[INFO] Ready to compile execution trace for target invariant verification...</div>
+                            </div>
+
+                            <!-- Proof Details Card (Visible after compilation) -->
+                            <div id="proof-result-box" class="hidden p-4 bg-slate-900/90 border border-cyan-500/40 rounded-xl space-y-3">
+                                <div class="flex items-center justify-between text-xs border-b border-slate-800 pb-2">
+                                    <span class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                                        ZK-STARK Invariant Proof Generated
+                                    </span>
+                                    <span class="text-slate-400 font-mono">Size: 42.8 KB</span>
+                                </div>
+
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-mono">
+                                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+                                        <span class="text-slate-400 text-[10px] block">Public Invariant Hash:</span>
+                                        <span class="text-slate-200 font-bold truncate block">0xa4f2...81c9</span>
+                                    </div>
+                                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+                                        <span class="text-slate-400 text-[10px] block">Trace Polynomial Degree:</span>
+                                        <span class="text-purple-400 font-bold block">2^18 (262,144)</span>
+                                    </div>
+                                    <div class="bg-slate-950 p-2 rounded-lg border border-slate-800">
+                                        <span class="text-slate-400 text-[10px] block">Estimated Verifier Gas:</span>
+                                        <span class="text-emerald-400 font-bold block">182,450 gas</span>
+                                    </div>
+                                </div>
+
+                                <div class="flex gap-3 pt-1">
+                                    <button onclick="submitProofOnChain()" id="btn-submit-onchain" class="flex-1 btn-emerald text-xs font-bold py-2.5 flex items-center justify-center gap-2">
+                                        <i data-lucide="send" class="w-4 h-4"></i>
+                                        <span>Submit ZK Proof to EVM Verifier Contract</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Simulated On-Chain EVM Verification & Escrow Locking Panel -->
+                        <div id="evm-verification-card" class="hidden card p-6 space-y-5 border-emerald-500/30 bg-gradient-to-b from-slate-900 to-emerald-950/20">
+                            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                                <div class="flex items-center gap-3">
+                                    <i data-lucide="blocks" class="w-6 h-6 text-emerald-400"></i>
+                                    <div>
+                                        <h3 class="font-bold text-slate-100 text-lg">On-Chain EVM Execution & Auto-Escrow</h3>
+                                        <p class="text-xs text-slate-400">NullDayVerifier.sol & NullDayVault.sol</p>
+                                    </div>
+                                </div>
+                                <span class="badge badge-success">
+                                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                                    Verified On-Chain
+                                </span>
+                            </div>
+
+                            <div class="space-y-3 font-mono text-xs">
+                                <div class="flex justify-between p-3 bg-slate-950/80 rounded-xl border border-slate-800">
+                                    <span class="text-slate-400">Transaction Hash:</span>
+                                    <a href="#" class="text-cyan-400 hover:underline">0x8e3b1c9472a...7d91f2</a>
+                                </div>
+
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
+                                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">Escrow Reward Lock</span>
+                                        <span class="text-lg font-bold text-emerald-400">$850,000 USDC</span>
+                                        <p class="text-[11px] text-slate-400 font-sans">Locked in <code class="text-cyan-300">EscrowPayout.sol</code></p>
+                                    </div>
+                                    <div class="p-3 bg-slate-950/80 rounded-xl border border-slate-800 space-y-1">
+                                        <span class="text-[10px] text-slate-400 uppercase tracking-wider block">SLA Patch Countdown</span>
+                                        <span id="sla-timer" class="text-lg font-bold text-amber-400">71h 59m 58s</span>
+                                        <p class="text-[11px] text-slate-400 font-sans">Protocol Devs Notified (Encrypted Payload)</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-4 bg-emerald-950/40 border border-emerald-500/30 rounded-xl space-y-2">
+                                    <div class="flex items-center gap-2 text-emerald-300 font-bold font-sans text-sm">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                        <span>Zero-Knowledge Escrow Guarantee Active</span>
+                                    </div>
+                                    <p class="text-slate-300 font-sans text-xs">
+                                        The protocol team has received the encrypted exploit witness. Once they submit a valid contract patch hash to <code class="text-cyan-300">PatchRegistry.sol</code> within 72 hours, the $850,000 USDC bounty is automatically transferred to your anonymous payout wallet. If they fail to patch, the secret auto-decrypts to public security auditors!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: VAULTS & SLA DASHBOARD -->
+            <div id="view-dashboard" class="tab-view hidden space-y-8">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-b border-slate-800 pb-6">
+                    <div>
+                        <h2 class="text-2xl font-extrabold text-white">Active Protocol Bounty Vaults & SLA Tracker</h2>
+                        <p class="text-sm text-slate-400">Monitor protocol liquidity escrows, pending ZK vulnerability claims, and SLA patch countdowns.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="btn-primary">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                            <span>Register New Protocol Vault</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Live Vaults Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Vault 1 -->
+                    <div class="card p-6 space-y-4 border-cyan-500/30 relative">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs text-cyan-400 font-mono">DeFi Lending</span>
+                                <h3 class="text-lg font-bold text-white">Aether Vault Protocol</h3>
+                            </div>
+                            <span class="badge badge-success">Active Escrow</span>
+                        </div>
+                        <div class="space-y-2 font-mono text-xs bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Total TVL Locked:</span>
+                                <span class="text-white font-bold">$8,500,000 USDC</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Max Single Bounty:</span>
+                                <span class="text-emerald-400 font-bold">$850,000 USDC</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Pending ZK Claims:</span>
+                                <span class="text-amber-400 font-bold">1 Active</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 flex justify-between items-center text-xs">
+                            <span class="text-slate-400">Verified Invariants: 6</span>
+                            <button onclick="switchTab('simulator')" class="text-cyan-400 hover:underline flex items-center gap-1 font-mono">
+                                <span>Submit ZK Proof</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Vault 2 -->
+                    <div class="card p-6 space-y-4 relative">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs text-indigo-400 font-mono">Cross-Chain Bridge</span>
+                                <h3 class="text-lg font-bold text-white">HyperHop Bridge</h3>
+                            </div>
+                            <span class="badge badge-success">Active Escrow</span>
+                        </div>
+                        <div class="space-y-2 font-mono text-xs bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Total TVL Locked:</span>
+                                <span class="text-white font-bold">$4,200,000 USDC</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Max Single Bounty:</span>
+                                <span class="text-emerald-400 font-bold">$420,000 USDC</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Pending ZK Claims:</span>
+                                <span class="text-slate-500 font-bold">0 Pending</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 flex justify-between items-center text-xs">
+                            <span class="text-slate-400">Verified Invariants: 4</span>
+                            <button onclick="switchTab('simulator')" class="text-cyan-400 hover:underline flex items-center gap-1 font-mono">
+                                <span>Submit ZK Proof</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Vault 3 -->
+                    <div class="card p-6 space-y-4 relative">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <span class="text-xs text-purple-400 font-mono">Liquid Staking</span>
+                                <h3 class="text-lg font-bold text-white">StellarStake Protocol</h3>
+                            </div>
+                            <span class="badge badge-success">Active Escrow</span>
+                        </div>
+                        <div class="space-y-2 font-mono text-xs bg-slate-950/70 p-3 rounded-xl border border-slate-800">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Total TVL Locked:</span>
+                                <span class="text-white font-bold">$1,550,000 USDC</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Max Single Bounty:</span>
+                                <span class="text-emerald-400 font-bold">$155,000 USDC</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">Pending ZK Claims:</span>
+                                <span class="text-slate-500 font-bold">0 Pending</span>
+                            </div>
+                        </div>
+                        <div class="pt-2 flex justify-between items-center text-xs">
+                            <span class="text-slate-400">Verified Invariants: 3</span>
+                            <button onclick="switchTab('simulator')" class="text-cyan-400 hover:underline flex items-center gap-1 font-mono">
+                                <span>Submit ZK Proof</span>
+                                <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SLA & Payout History Table -->
+                <div class="card p-6 space-y-4">
+                    <h3 class="text-lg font-bold text-white">Recent ZK Vulnerability Escrow Claims</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs font-mono">
+                            <thead class="bg-slate-950 text-slate-400 uppercase text-[10px]">
+                                <tr>
+                                    <th class="p-3">Claim ID</th>
+                                    <th class="p-3">Protocol</th>
+                                    <th class="p-3">Invariant Violation Type</th>
+                                    <th class="p-3">Escrow Amount</th>
+                                    <th class="p-3">SLA Status</th>
+                                    <th class="p-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800 text-slate-300">
+                                <tr>
+                                    <td class="p-3 font-bold text-cyan-400">#ND-8942</td>
+                                    <td class="p-3">Aether Vault</td>
+                                    <td class="p-3 text-purple-300">State Reentrancy Double Withdrawal</td>
+                                    <td class="p-3 font-bold text-emerald-400">$850,000 USDC</td>
+                                    <td class="p-3"><span class="badge badge-warning">Patch Countdown (71h)</span></td>
+                                    <td class="p-3 text-right"><button class="text-cyan-400 hover:underline">View Proof</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-cyan-400">#ND-8120</td>
+                                    <td class="p-3">HyperHop Bridge</td>
+                                    <td class="p-3 text-purple-300">Merkle Root Signature Collision</td>
+                                    <td class="p-3 font-bold text-emerald-400">$420,000 USDC</td>
+                                    <td class="p-3"><span class="badge badge-success">Patched & Paid Out</span></td>
+                                    <td class="p-3 text-right"><button class="text-cyan-400 hover:underline">View Tx</button></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-3 font-bold text-cyan-400">#ND-7431</td>
+                                    <td class="p-3">StellarStake</td>
+                                    <td class="p-3 text-purple-300">Rounding Precision Inflation Drain</td>
+                                    <td class="p-3 font-bold text-emerald-400">$155,000 USDC</td>
+                                    <td class="p-3"><span class="badge badge-success">Patched & Paid Out</span></td>
+                                    <td class="p-3 text-right"><button class="text-cyan-400 hover:underline">View Tx</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SECTION 3: ARCHITECTURE & CONTRACTS -->
+            <div id="view-architecture" class="tab-view hidden space-y-8">
+                <div class="border-b border-slate-800 pb-6">
+                    <h2 class="text-2xl font-extrabold text-white">NullDay Protocol Architecture & Smart Contracts</h2>
+                    <p class="text-sm text-slate-400">Production Solidity & Circom primitives for Zero-Knowledge Invariant Proving.</p>
+                </div>
+
+                <!-- Architectural Flow Diagram -->
+                <div class="card p-6 space-y-4">
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i data-lucide="git-fork" class="w-5 h-5 text-cyan-400"></i>
+                        <span>End-to-End Cryptographic Sequence Flow</span>
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs font-mono">
+                        <div class="p-4 bg-slate-950 rounded-xl border border-cyan-500/30 space-y-2">
+                            <span class="text-cyan-400 font-bold text-sm block">1. Off-Chain STARK Prover</span>
+                            <p class="text-slate-400 font-sans text-xs">
+                                Researcher executes attack payload in isolated EVM zk-VM sandbox. Generates STARK proof $\pi$ proving $\mathcal{I}(\text{State}) = \text{FAILED}$.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-950 rounded-xl border border-indigo-500/30 space-y-2">
+                            <span class="text-indigo-400 font-bold text-sm block">2. On-Chain Verifier</span>
+                            <p class="text-slate-400 font-sans text-xs">
+                                <code class="text-cyan-300">NullDayVerifier.sol</code> verifies $\pi$ on EVM block header $H$. Validates execution polynomial constraints in ~180k gas.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-950 rounded-xl border border-purple-500/30 space-y-2">
+                            <span class="text-purple-400 font-bold text-sm block">3. Automated Escrow Lock</span>
+                            <p class="text-slate-400 font-sans text-xs">
+                                <code class="text-cyan-300">NullDayVault.sol</code> instantly locks target bounty funds in non-custodial escrow. Starts 72h SLA patch countdown.
+                            </p>
+                        </div>
+                        <div class="p-4 bg-slate-950 rounded-xl border border-emerald-500/30 space-y-2">
+                            <span class="text-emerald-400 font-bold text-sm block">4. Patch & Payout</span>
+                            <p class="text-slate-400 font-sans text-xs">
+                                Protocol team deploys patch bytecode. Verifier confirms invariant is restored. Bounty USDC released to whitehat's stealth address.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Viewer Tabs -->
+                <div class="card p-6 space-y-4">
+                    <div class="flex flex-wrap gap-2 border-b border-slate-800 pb-3">
+                        <button onclick="switchCodeTab('vault')" id="codetab-vault" class="code-tab active-code-tab">
+                            NullDayVault.sol
+                        </button>
+                        <button onclick="switchCodeTab('verifier')" id="codetab-verifier" class="code-tab">
+                            NullDayVerifier.sol
+                        </button>
+                        <button onclick="switchCodeTab('circuit')" id="codetab-circuit" class="code-tab">
+                            InvariantProver.circom
+                        </button>
+                    </div>
+
+                    <div class="relative bg-[#05070c] border border-slate-800 rounded-xl p-4 overflow-x-auto font-mono text-xs text-slate-300">
+                        <pre id="code-display" class="leading-relaxed"></pre>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-800/80 bg-[#0a0d14] py-6 text-xs text-slate-500">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i>
+                    <span>NullDay Protocol &copy; 2026 - Zero-Knowledge Autonomous Bug Bounty Engine</span>
+                </div>
+                <div class="flex gap-4 font-mono text-slate-400">
+                    <span>EVM Invariant STARK v2.4</span>
+                    <span>•</span>
+                    <span>100% Non-Custodial Trustless Payouts</span>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>

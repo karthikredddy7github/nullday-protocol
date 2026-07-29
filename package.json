@@ -1,0 +1,24 @@
+{
+  "name": "nullday-protocol",
+  "version": "1.0.0",
+  "description": "Zero-Knowledge Autonomous Bug Bounty & Invariant Verification Escrow Protocol",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve -l 3000 .",
+    "dev": "serve -l 3000 ."
+  },
+  "keywords": [
+    "zero-knowledge",
+    "zk-stark",
+    "bug-bounty",
+    "smart-contracts",
+    "ethereum",
+    "solidity",
+    "security"
+  ],
+  "author": "karthikredddy7github",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.4"
+  }
+}
